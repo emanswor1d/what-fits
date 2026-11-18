@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>what fits you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400;1,9..144,600&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#fde8ee;--paper:#fff7f9;--ink:#4a1630;--soft:#8d5a70;--rose:#e0457b;--rose-deep:#b92c5f;--line:#f3c3d2;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;--body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;
+  padding:env(safe-area-inset-top,0px) max(18px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(18px,env(safe-area-inset-left,0px));
+  display:flex;justify-content:center;-webkit-tap-highlight-color:transparent}
+#app{width:100%;max-width:460px;min-height:100%;display:flex;flex-direction:column;padding:14px 0 20px;gap:14px}
+.top{display:flex;align-items:center;gap:12px;min-height:36px}
+.back{border:0;background:none;color:var(--soft);font:600 15px var(--body);padding:8px 6px;cursor:pointer;border-radius:8px}
+.back:focus-visible,.btn:focus-visible,.opt:focus-visible,.dot:focus-visible,textarea:focus-visible{outline:3px solid var(--rose);outline-offset:2px}
+.bar{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--rose),var(--rose-deep));border-radius:99px;transition:width .25s ease}
+.count{font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums;min-width:48px;text-align:right}
+.stage{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;padding:8px 0}
+.kicker{font:italic 400 19px var(--display);color:var(--rose-deep)}
+h1{font:italic 600 44px/1.02 var(--display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h2{font:500 29px/1.16 var(--display);margin:0;text-wrap:balance}
+p{margin:0;color:var(--soft)}
+p.lead{color:var(--ink);font-size:18px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt,.btn{font:600 17px var(--body);border-radius:18px;padding:16px 18px;cursor:pointer;text-align:left;width:100%;display:block;text-decoration:none}
+.opt{background:var(--paper);color:var(--ink);border:2px solid var(--line);transition:transform .08s ease,border-color .12s ease,background .12s ease}
+.opt:active{transform:scale(.985)}
+.opt.on{border-color:var(--rose);background:#ffe1ea}
+.opts.chips{flex-direction:row;flex-wrap:wrap;gap:8px}
+.chips .opt{width:auto;padding:11px 15px;font-size:16px;border-radius:99px}
+.scale{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 2px}
+.dot{border:2px solid var(--line);background:var(--paper);border-radius:50%;cursor:pointer;padding:0;flex:none;transition:transform .08s ease,background .12s ease,border-color .12s ease}
+.dot:active{transform:scale(.93)}
+.dot.on{background:var(--rose);border-color:var(--rose-deep)}
+.d1,.d5{width:62px;height:62px}.d2,.d4{width:50px;height:50px}.d3{width:40px;height:40px}
+.ends{display:flex;justify-content:space-between;font-size:15px;font-weight:600;color:var(--soft)}
+.btn{background:var(--rose);color:#fff;border:0;text-align:center;box-shadow:0 3px 0 var(--rose-deep)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--rose-deep)}
+.btn.ghost{background:none;color:var(--rose-deep);box-shadow:none;border:2px solid var(--line)}
+textarea{width:100%;min-height:130px;border:2px solid var(--line);border-radius:18px;background:var(--paper);color:var(--ink);font:400 17px/1.4 var(--body);padding:14px 16px;resize:vertical}
+.star{width:54px;height:54px}
+.note{font-size:14px}
+@media (max-height:640px){h1{font-size:36px}h2{font-size:24px}.stage{gap:16px}.opt,.btn{padding:13px 16px}}
+@media (max-width:360px){.d1,.d5{width:54px;height:54px}.d2,.d4{width:44px;height:44px}.d3{width:36px;height:36px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top" id="top" hidden>
+    <button class="back" id="back" type="button">‹ back</button>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="count" id="count"></div>
+  </div>
+  <div class="stage" id="stage"></div>
+</div>
+<script>
+(function(){
+"use strict";
+/* ---- 1. how much is this you (1 not me .. 5 so me) ---- */
+var SCALE=[
+["s1","I like taking my time and getting one thing exactly right."],
+["s2","I get bored fast if every day is the same."],
+["s3","Being around people all day gives me energy."],
+["s4","I notice small details other people miss."],
+["s5","I stay calm when everything around me is chaos."],
+["s6","I like being the one in charge."],
+["s7","When someone is upset, I'm the person they come to."],
+["s8","I like knowing exactly what my day is going to look like."],
+["s9","I can lock in on one thing for hours and not notice the time."],
+["s10","I care a lot about how things look."],
+["s11","I'd rather be moving and using my hands than sitting at a computer."],
+["s12","I like figuring out problems nobody has the answer to yet."],
+["s13","I like competing, and I really like winning."],
+["s14","I finish what I start, even when it gets boring."],
+["s15","I'd rather be told exactly what to do than have to figure it out."],
+["s16","A day only feels good if I helped someone."],
+["s17","I'm okay being bad at something for a while if I'm getting better."],
+["s18","I like convincing people to see things my way."],
+["s19","I need a lot of alone time to feel normal."],
+["s20","I'd take a job I like less if it paid a lot more."]
+];
+/* ---- 2. either or ---- */
+var PICKS=[
+["p1","Fast and done","Slow and perfect"],
+["p2","Plan everything","Figure it out as I go"],
+["p3","Lead it","Be the person the leader counts on"],
+["p4","Safe and steady","Big risk, big reward"],
+["p5","Start new things","Finish and polish things"],
+["p6","Talk it out with people","Think it through alone"],
+["p7","Be known for being kind","Be known for being the best"],
+["p8","Same place every day","Somewhere different all the time"],
+["p9","Lots of small tasks","One big thing at a time"],
+["p10","Work that matters to me","Work that pays more"]
+];
+/* ---- 3. pick one ---- */
+var ONE=[
+["g1","In a group project, you usually end up being the one who",["keeps everyone organized","comes up with the idea","does the careful part nobody else wants","keeps everyone getting along","talks for the group","just does my part quietly"]],
+["g2","A free Saturday with zero plans. What sounds best?",["making something","being with people","getting my life organized","going down a rabbit hole learning something","being outside or moving","doing nothing at all"]],
+["g3","A friend comes to you with a problem. You mostly",["listen and let them talk","come up with a plan to fix it","get their mind off it","tell them the truth, even if it's harsh"]],
+["g4","You feel most proud when",["someone thanks me","I made something that looks really good","I figured out something hard","I beat a goal or beat other people","everything ran smoothly because of me","I made money"]],
+["g5","What drains you the most?",["being rushed","being bored","being watched or judged","not knowing what I'm supposed to do","drama and conflict","sitting still inside all day"]],
+["g6","How do you learn something new best?",["watch someone do it","just try it and mess up","read about it first","have someone walk me through it step by step"]],
+["g7","In school, the work you minded least was",["writing","solving problems","projects where you make something","class discussions","hands-on labs","memorizing for tests"]],
+["g8","You'd quit a job fastest because of",["a mean boss","being bored","low pay","no way to move up","chaos, nobody knows what's going on","being stuck alone all day"]],
+["g9","When something goes wrong, your first move is",["stay calm and handle it","ask someone what to do","get stressed, then handle it","find out whose fault it is","get out of there"]],
+["g10","The health path you're on right now feels like",["I like it","it's fine","not sure it's me","not for me"]],
+["g11","How much more school are you up for?",["a short certificate, under a year","about 2 years","4 years","4 years plus more after"]]
+];
+/* ---- 4. pick several ---- */
+var MULTI=[
+["m1","Hard no's. Tap every one you'd hate in a job.",["blood, needles, body stuff","night shifts","a screen all day","sales targets","a lot of math","a lot of writing","being on call","working alone all day","talking to strangers all day","phone calls all day","presenting in front of people","being on my feet all day","someone watching over my shoulder"],0],
+["m2","Pick the 3 that matter most to you at 25.",["making a lot of money","free time and a flexible schedule","being creative","helping people","a stable job that's always needed","being my own boss","a job that looks cool","living in California","not being stressed","always learning something new"],3]
+];
+/* ---- 5. typed ---- */
+var TEXTS=[
+["t1","What do you lose track of time doing?","anything counts"],
+["t2","What do people always come to you for?","advice, fixing something, picking an outfit, anything"],
+["t3","A time you were really proud of yourself. What did you do?",""],
+["t4","Whose life or job do you look at and think, i'd want that?","someone you know, someone online, anyone"],
+["t5","It's a random Tuesday and you're 28. Where are you and what are you doing?",""],
+["t6","If every job paid the same, what would you do?",""],
+["t7","A job you would never do, and why?",""],
+["t8","Anything else that would help pick options for you?","skip if not"]
+];
+
+var steps=[{k:"intro"}];
+SCALE.forEach(function(q){steps.push({k:"scale",q:q})});
+steps.push({k:"break",t:"Now the either-or ones.",s:"Pick the side that's more you. If it's really both, say both."});
+PICKS.forEach(function(q){steps.push({k:"pick",q:q})});
+steps.push({k:"break",t:"Next, pick the one that fits best.",s:"None will be perfect. Go with the closest."});
+ONE.forEach(function(q){steps.push({k:"one",q:q})});
+MULTI.forEach(function(q){steps.push({k:"multi",q:q})});
+steps.push({k:"break",t:"Last part. A few you type.",s:"Short is fine. Type how you text. These matter the most."});
+TEXTS.forEach(function(q){steps.push({k:"text",q:q})});
+steps.push({k:"done"});
+function isQ(k){return k!=="intro"&&k!=="break"&&k!=="done"}
+var QN=steps.filter(function(s){return isQ(s.k)}).length;
+
+var LS="what-fits-v2",st={i:0,a:{}};
+try{var raw=localStorage.getItem(LS);if(raw){var o=JSON.parse(raw);if(o&&o.a&&typeof o.i==="number")st=o}}catch(e){}
+if(st.i>=steps.length||st.i<0)st.i=0;
+function keep(){try{localStorage.setItem(LS,JSON.stringify(st))}catch(e){}}
+
+var TO="";try{var h=(location.hash||"").replace(/^#/,"");if(h)TO=atob(h)}catch(e){TO=""}
+if(TO.indexOf("@")<1)TO="";
+
+var stage=document.getElementById("stage"),topEl=document.getElementById("top"),bar=document.getElementById("bar"),count=document.getElementById("count");
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function qIndex(){var n=0;for(var j=0;j<=st.i;j++){if(isQ(steps[j].k))n++}return n}
+function go(d){st.i=Math.max(0,Math.min(steps.length-1,st.i+d));keep();render();window.scrollTo(0,0)}
+function next(){go(1)}
+function optBtn(label,on,fn){var b=el("button","opt"+(on?" on":""),label);b.type="button";b.addEventListener("click",fn);return b}
+function tapNext(id,val){st.a[id]=val;keep();render();setTimeout(next,170)}
+
+function render(){
+  var s=steps[st.i];stage.textContent="";
+  topEl.hidden=(s.k==="intro"||s.k==="done");
+  var n=qIndex();bar.style.width=(100*n/QN)+"%";count.textContent=n+" / "+QN;
+
+  if(s.k==="intro"){
+    stage.appendChild(star());
+    stage.appendChild(el("div","kicker","for chels"));
+    stage.appendChild(el("h1",null,"what kind of work fits you?"));
+    stage.appendChild(el("p","lead","About 8 minutes. It's about you and how you like to do things, not about any one job. No right answers, so go with your first feeling."));
+    stage.appendChild(el("p",null,"At the end you send your answers back, and they get turned into a few real paths that fit you."));
+    var b=el("button","btn","start");b.type="button";b.addEventListener("click",next);stage.appendChild(b);
+    stage.appendChild(el("p","note","It remembers where you are, so you can stop and come back."));
+    return;
+  }
+  if(s.k==="break"){
+    stage.appendChild(el("h2",null,s.t));stage.appendChild(el("p","lead",s.s));
+    var c=el("button","btn","ok");c.type="button";c.addEventListener("click",next);stage.appendChild(c);return;
+  }
+  if(s.k==="scale"){
+    var q=s.q,v=st.a[q[0]];
+    stage.appendChild(el("div","kicker","how much is this you?"));
+    stage.appendChild(el("h2",null,q[1]));
+    var wrap=el("div"),row=el("div","scale");
+    [1,2,3,4,5].forEach(function(x){
+      var d=el("button","dot d"+x+(v===x?" on":""));d.type="button";
+      d.setAttribute("aria-label",x+" out of 5");
+      d.addEventListener("click",function(){tapNext(q[0],x)});row.appendChild(d);
+    });
+    var ends=el("div","ends");ends.appendChild(el("span",null,"not me"));ends.appendChild(el("span",null,"so me"));
+    wrap.appendChild(row);wrap.appendChild(ends);stage.appendChild(wrap);return;
+  }
+  if(s.k==="pick"){
+    var p=s.q,pv=st.a[p[0]];
+    stage.appendChild(el("div","kicker","which one is more you?"));
+    var box=el("div","opts");
+    box.appendChild(optBtn(p[1],pv==="A",function(){tapNext(p[0],"A")}));
+    box.appendChild(optBtn(p[2],pv==="B",function(){tapNext(p[0],"B")}));
+    box.appendChild(optBtn("honestly both",pv==="both",function(){tapNext(p[0],"both")}));
+    stage.appendChild(box);return;
+  }
+  if(s.k==="one"){
+    var g=s.q,gv=st.a[g[0]];
+    stage.appendChild(el("h2",null,g[1]));
+    var gb=el("div","opts");
+    g[2].forEach(function(o){gb.appendChild(optBtn(o,gv===o,function(){tapNext(g[0],o)}))});
+    stage.appendChild(gb);return;
+  }
+  if(s.k==="multi"){
+    var m=s.q,mv=st.a[m[0]]||[],max=m[3];
+    stage.appendChild(el("h2",null,m[1]));
+    var ch=el("div","opts chips");
+    m[2].forEach(function(o){
+      ch.appendChild(optBtn(o,mv.indexOf(o)>-1,function(){
+        var cur=(st.a[m[0]]||[]).slice(),ix=cur.indexOf(o);
+        if(ix>-1)cur.splice(ix,1);else{if(max&&cur.length>=max)cur.shift();cur.push(o)}
+        st.a[m[0]]=cur;keep();render();
+      }));
+    });
+    stage.appendChild(ch);
+    var nb=el("button","btn",(mv.length||max)?"next":"none of these, next");nb.type="button";nb.addEventListener("click",next);stage.appendChild(nb);return;
+  }
+  if(s.k==="text"){
+    var t=s.q;
+    stage.appendChild(el("h2",null,t[1]));
+    if(t[2])stage.appendChild(el("p",null,t[2]));
+    var ta=el("textarea");ta.id="ta-"+t[0];ta.value=st.a[t[0]]||"";
+    ta.addEventListener("input",function(){st.a[t[0]]=ta.value;keep()});
+    stage.appendChild(ta);
+    var tb=el("button","btn",steps[st.i+1].k==="done"?"finish":"next");tb.type="button";tb.addEventListener("click",next);
+    stage.appendChild(tb);return;
+  }
+  if(s.k==="done"){
+    var body=asText();
+    stage.appendChild(star());
+    stage.appendChild(el("h1",null,"done. one last tap."));
+    stage.appendChild(el("p","lead","Hit the button and an email opens with your answers already in it. Just press send."));
+    var a=el("a","btn","send my answers");
+    a.href="mailto:"+encodeURIComponent(TO).replace(/%40/g,"@")+"?subject="+encodeURIComponent("my quiz answers")+"&body="+encodeURIComponent(body);
+    stage.appendChild(a);
+    stage.appendChild(el("p",null,"If nothing opens, copy them and paste them as a reply to the email this quiz came in."));
+    var cb=el("button","btn ghost","copy my answers");cb.type="button";
+    var ta2=el("textarea");ta2.id="ta-out";ta2.readOnly=true;ta2.value=body;ta2.hidden=true;
+    cb.addEventListener("click",function(){
+      var ok=function(){cb.textContent="copied. now paste it in a reply"};
+      var sel=function(){ta2.hidden=false;ta2.focus();ta2.select();cb.textContent="selected. copy it, then paste it in a reply"};
+      try{navigator.clipboard.writeText(body).then(ok,sel)}catch(e){sel()}
+    });
+    stage.appendChild(cb);stage.appendChild(ta2);
+    var rb=el("button","back","‹ change an answer");rb.type="button";rb.addEventListener("click",function(){go(-1)});stage.appendChild(rb);
+    return;
+  }
+}
+function asText(){
+  var L=["QUIZ ANSWERS v2",""];
+  L.push("SCALE (1 not me, 5 so me)");
+  SCALE.forEach(function(q){L.push((st.a[q[0]]==null?"-":st.a[q[0]])+"  "+q[1])});
+  L.push("","EITHER OR");
+  PICKS.forEach(function(p){var v=st.a[p[0]];L.push(p[1]+" / "+p[2]+" -> "+(v==="A"?p[1]:v==="B"?p[2]:v||"-"))});
+  L.push("","PICK ONE");
+  ONE.forEach(function(g){L.push(g[1]+" -> "+(st.a[g[0]]||"-"))});
+  L.push("");
+  MULTI.forEach(function(m){L.push(m[1]+" -> "+((st.a[m[0]]||[]).join("; ")||"-"))});
+  L.push("","TYPED");
+  TEXTS.forEach(function(t){L.push(t[1]+" -> "+((st.a[t[0]]||"").trim()||"-"))});
+  return L.join("\n");
+}
+function star(){
+  var ns="http://www.w3.org/2000/svg",sv=document.createElementNS(ns,"svg");sv.setAttribute("viewBox","0 0 54 54");sv.setAttribute("class","star");sv.setAttribute("aria-hidden","true");
+  var p=document.createElementNS(ns,"path");p.setAttribute("d","M27 2 C29 18 36 25 52 27 C36 29 29 36 27 52 C25 36 18 29 2 27 C18 25 25 18 27 2 Z");p.setAttribute("fill","#c9ccd6");p.setAttribute("stroke","#8f93a3");p.setAttribute("stroke-width","1.5");
+  var hl=document.createElementNS(ns,"path");hl.setAttribute("d","M27 10 C28 20 34 26 44 27 C34 27.5 28 27 27 10 Z");hl.setAttribute("fill","#ffffff");hl.setAttribute("opacity",".75");
+  sv.appendChild(p);sv.appendChild(hl);return sv;
+}
+document.getElementById("back").addEventListener("click",function(){go(-1)});
+render();
+})();
+</script>
+</body>
+</html>
